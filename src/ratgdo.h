@@ -105,13 +105,17 @@ const gpio_num_t UART_RX_PIN = (gpio_num_t)UART_RX_GPIO;
 #define INPUT_OBST_GPIO GPIO_NUM_4
 #endif
 const gpio_num_t INPUT_OBST_PIN = (gpio_num_t)INPUT_OBST_GPIO;
-#ifndef LED_BUILTIN_GPIO
-#define LED_BUILTIN_GPIO GPIO_NUM_2
-#endif
 #ifndef LED_BUILTIN_ON_STATE
 #define LED_BUILTIN_ON_STATE HIGH
 #endif
+// Some board variants already define LED_BUILTIN (e.g. Adafruit QT Py ESP32-S2, where
+// it is the onboard NeoPixel and the Arduino core drives it through digitalWrite).
+#ifndef LED_BUILTIN
+#ifndef LED_BUILTIN_GPIO
+#define LED_BUILTIN_GPIO GPIO_NUM_2
+#endif
 const gpio_num_t LED_BUILTIN = (gpio_num_t)LED_BUILTIN_GPIO;
+#endif
 #ifndef DRY_CONTACT_OPEN_GPIO
 #define DRY_CONTACT_OPEN_GPIO GPIO_NUM_13
 #endif
@@ -140,11 +144,26 @@ const gpio_num_t DISCRETE_CLOSE_PIN = GPIO_NUM_25; // alternative (or in additio
 #endif
 
 #ifdef RATGDO32_DISCO
-const gpio_num_t BEEPER_PIN = GPIO_NUM_33;
-const gpio_num_t LASER_PIN = GPIO_NUM_23;
-const gpio_num_t SENSOR_SDA_PIN = GPIO_NUM_19;
-const gpio_num_t SENSOR_SCL_PIN = GPIO_NUM_18;
-const gpio_num_t SENSOR_SHUTDOWN_PIN = GPIO_NUM_32;
+#ifndef BEEPER_GPIO
+#define BEEPER_GPIO GPIO_NUM_33
+#endif
+const gpio_num_t BEEPER_PIN = (gpio_num_t)BEEPER_GPIO;
+#ifndef LASER_GPIO
+#define LASER_GPIO GPIO_NUM_23
+#endif
+const gpio_num_t LASER_PIN = (gpio_num_t)LASER_GPIO;
+#ifndef SENSOR_SDA_GPIO
+#define SENSOR_SDA_GPIO GPIO_NUM_19
+#endif
+const gpio_num_t SENSOR_SDA_PIN = (gpio_num_t)SENSOR_SDA_GPIO;
+#ifndef SENSOR_SCL_GPIO
+#define SENSOR_SCL_GPIO GPIO_NUM_18
+#endif
+const gpio_num_t SENSOR_SCL_PIN = (gpio_num_t)SENSOR_SCL_GPIO;
+#ifndef SENSOR_SHUTDOWN_GPIO
+#define SENSOR_SHUTDOWN_GPIO GPIO_NUM_32
+#endif
+const gpio_num_t SENSOR_SHUTDOWN_PIN = (gpio_num_t)SENSOR_SHUTDOWN_GPIO;
 #endif
 
 enum GarageDoorCurrentState : uint8_t

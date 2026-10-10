@@ -29,7 +29,9 @@ static const char *TAG = "ratgdo-vehicle";
 bool vehicle_setup_done = false;
 bool vehicle_setup_error = false;
 
-VL53L4CX distanceSensor(&Wire, SENSOR_SHUTDOWN_PIN);
+// Allocated in setup_vehicle() rather than statically, it is ~9.5KB and static
+// RAM is too tight on ESP32-S2 boards.
+static VL53L4CX *distanceSensor = nullptr;
 
 static const int32_t MIN_DISTANCE = 25; // ignore bugs crawling on the distance sensor
 
@@ -68,23 +70,24 @@ void setup_vehicle()
         vehicle_setup_error = true;
         return;
     }
-    distanceSensor.begin();
-    distanceSensor.VL53L4CX_Off();
-    rc = distanceSensor.InitSensor(0x59);
+    distanceSensor = new VL53L4CX(&Wire, SENSOR_SHUTDOWN_PIN);
+    distanceSensor->begin();
+    distanceSensor->VL53L4CX_Off();
+    rc = distanceSensor->InitSensor(0x59);
     if (rc != VL53L4CX_ERROR_NONE)
     {
         ESP_LOGE(TAG, "VL53L4CX failed to initialize error: %d", rc);
         vehicle_setup_error = true;
         return;
     }
-    rc = distanceSensor.VL53L4CX_SetDistanceMode(VL53L4CX_DISTANCEMODE_LONG);
+    rc = distanceSensor->VL53L4CX_SetDistanceMode(VL53L4CX_DISTANCEMODE_LONG);
     if (rc != VL53L4CX_ERROR_NONE)
     {
         ESP_LOGE(TAG, "VL53L4CX_SetDistanceMode error: %d", rc);
         vehicle_setup_error = true;
         return;
     }
-    rc = distanceSensor.VL53L4CX_StartMeasurement();
+    rc = distanceSensor->VL53L4CX_StartMeasurement();
     if (rc != VL53L4CX_ERROR_NONE)
     {
         ESP_LOGE(TAG, "VL53L4CX_StartMeasurement error: %d", rc);
@@ -106,10 +109,10 @@ void vehicle_loop()
 
     uint8_t dataReady = 0;
     VL53L4CX_Error err = VL53L4CX_ERROR_NONE;
-    if (((err = distanceSensor.VL53L4CX_GetMeasurementDataReady(&dataReady)) == VL53L4CX_ERROR_NONE) && (dataReady > 0))
+    if (((err = distanceSensor->VL53L4CX_GetMeasurementDataReady(&dataReady)) == VL53L4CX_ERROR_NONE) && (dataReady > 0))
     {
         VL53L4CX_MultiRangingData_t distanceData;
-        if ((err = distanceSensor.VL53L4CX_GetMultiRangingData(&distanceData)) == VL53L4CX_ERROR_NONE)
+        if ((err = distanceSensor->VL53L4CX_GetMultiRangingData(&distanceData)) == VL53L4CX_ERROR_NONE)
         {
             if (distanceData.NumberOfObjectsFound > 0)
             {
@@ -169,7 +172,7 @@ void vehicle_loop()
                 calculatePresence(distance);
             }
             // And start the sensor measuring again...
-            distanceSensor.VL53L4CX_ClearInterruptAndStartMeasurement();
+            distanceSensor->VL53L4CX_ClearInterruptAndStartMeasurement();
         }
         else
         {

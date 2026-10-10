@@ -56,12 +56,14 @@ esp_log_level_t logLevel = ESP_LOG_VERBOSE;
 // Allows us to intercept all ESP_LOGx() even outside our code.
 void esp_log_hook(const char *fmt, va_list args)
 {
-    if (!Serial)
+    static bool serialStarted = false;
+    if (!serialStarted)
     {
         // Before we can log anything, we need to initialize the serial port.
+        // Do not test or wait on Serial itself. For USB serial (e.g. ESP32-S3)
+        // it is only true while a host has the port open, which may be never.
+        serialStarted = true;
         Serial.begin(115200);
-        while (!Serial)
-            ; // Wait for serial port to open
         Serial.print("\n\n\n");
     }
     if (ratgdoLogger)

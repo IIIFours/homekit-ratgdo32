@@ -111,7 +111,10 @@ inline bool txQueuePop(PacketAction *pkt)
 }
 
 // used by SEC+1.0
-#ifdef ESP32
+#if defined(ESP32) && (SOC_UART_HP_NUM < 3)
+// ESP32-S2 has only two UARTs (no Serial2)
+#define Sec1Serial Serial1
+#elif defined(ESP32)
 #define Sec1Serial Serial2
 #else
 #define Sec1Serial sw_serial

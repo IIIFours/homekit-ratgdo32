@@ -50,6 +50,35 @@ The manual setup code is `2510-2023`.
 > [!NOTE]
 > If you experience very slow or poor connection accessing the ratgdo device web page then try moving the device further away from the garage door opener. Several users have reported that this can improve reliability of the connection. We do not know why this is the case but may suggest some RF interference between the door opener and the ratgdo device.
 
+## Adafruit QT Py ESP32-S3 / ESP32-S2
+
+The firmware can also be built for an [Adafruit QT Py ESP32-S3 (4MB flash, 2MB PSRAM)](https://www.adafruit.com/product/5700) using the `qtpy_esp32s3` PlatformIO environment, or an [Adafruit QT Py ESP32-S2](https://www.adafruit.com/product/5325) using `qtpy_esp32s2`. Both boards share the pinout below. The QT Py has 3.3V pins and no interface circuitry, so it must be connected to the door opener through circuitry equivalent to the ratgdo32 board, never directly to the opener terminals.
+
+| Function | QT Py pin | GPIO |
+| --- | --- | --- |
+| Door opener control TX | TX | 5 |
+| Door opener control RX | RX | 16 |
+| Obstruction sensor input | A0 | 18 |
+| Dry contact open (encoder A) | A1 | 17 |
+| Dry contact close (encoder B) | A2 | 9 |
+| Dry contact light | A3 | 8 |
+| Door status output | SDA | 7 |
+| Obstruction status output | SCL | 6 |
+| Beeper | MO | 35 |
+| Parking assist laser | MI | 37 |
+| VL53L4CX distance sensor XSHUT | SCK | 36 |
+| VL53L4CX distance sensor I2C | STEMMA QT connector | 41 (SDA), 40 (SCL) |
+| Status LED | Onboard NeoPixel | 39 |
+
+Pin assignments can be changed with the build flags in `platformio.ini`.
+
+To flash the ESP32-S3 board, connect it by USB and run `pio run -e qtpy_esp32s3 -t upload`. USB serial works as on ratgdo32 boards. Flashing replaces the factory UF2 bootloader.
+
+Differences from ratgdo32 boards:
+
+- Update firmware with _Update from local file_ using `.pio/build/<environment>/firmware.bin`. _Update from GitHub_ and the browser-based flash tool install ratgdo32 (ESP32) firmware, which does not run on these boards. An OTA update with ESP32 firmware fails and the device keeps its current firmware.
+- ESP32-S2 only: USB serial is disabled, because with it enabled the firmware does not fit in the ESP32-S2's static RAM. There is no serial log, serial command line interface or Improv WiFi setup. To flash over USB, hold BOOT while pressing and releasing RESET, run `pio run -e qtpy_esp32s2 -t upload`, then press RESET. On first boot, connect to the _Garage Door ABCDEF_ WiFi network and browse to http://192.168.4.1 to select a WiFi network. Logs are available on the device web page and through syslog.
+
 ## HomeKit support
 
 When you first add the device to HomeKit a number of accessories are added:
