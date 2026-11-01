@@ -64,6 +64,14 @@ void setup_vehicle()
 
     ESP_LOGI(TAG, "=== Setup VL53L4CX time-of-flight sensor ===");
 
+    if (SENSOR_SDA_PIN == GPIO_NUM_NC || SENSOR_SCL_PIN == GPIO_NUM_NC)
+    {
+        // Board has no pins for the sensor (e.g. Seeed XIAO ESP32C3)
+        ESP_LOGI(TAG, "VL53L4CX not supported on this board");
+        vehicle_setup_error = true;
+        return;
+    }
+
     if (!Wire.begin(SENSOR_SDA_PIN, SENSOR_SCL_PIN))
     {
         ESP_LOGE(TAG, "VL53L4CX pin setup failed");

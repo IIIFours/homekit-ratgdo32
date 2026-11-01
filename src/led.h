@@ -30,6 +30,7 @@ private:
     uint8_t currentState = 0;
     Ticker LEDtimer;
     void (*stateChangeCallback)(bool) = nullptr;
+    void write(uint8_t value);
 
 public:
     explicit LED(uint8_t gpio_num, uint8_t state = 1);

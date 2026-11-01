@@ -349,12 +349,17 @@ void LOG::printCrashLog(Print &outputDev)
                 else
                     outputDev.print("addr2line -p -f -C -e firmware.elf \\\n");
                 outputDev.print(" -a ");
+#ifdef __riscv
+                // RISC-V core dump summary has no backtrace, only the exception PC and return address
+                outputDev.printf("0x%08lX 0x%08lX", summary->exc_pc, summary->ex_info.ra);
+#else
                 for (int i = 0; i < summary->exc_bt_info.depth; i++)
                 {
                     outputDev.printf("0x%08lX ", summary->exc_bt_info.bt[i]);
                     if (((i + 1) % 6) == 0 && ((i + 1) < summary->exc_bt_info.depth))
                         outputDev.print("\\\n    ");
                 }
+#endif
                 outputDev.print("\n\n");
                 outputDev.print("Make sure that the ELF file matches the binary that crashed.\n");
             }

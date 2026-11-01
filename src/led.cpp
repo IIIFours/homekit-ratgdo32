@@ -31,12 +31,20 @@ LED::LED(uint8_t gpio_num, uint8_t state)
     currentState = offState = (onState == 1) ? 0 : 1;
     idleState = (activeState == 1) ? 0 : 1;
     LEDtimer = Ticker();
-    pinMode(pin, OUTPUT);
+    if (pin != (uint8_t)GPIO_NUM_NC)
+        pinMode(pin, OUTPUT);
+}
+
+// Boards without a status LED set its GPIO to GPIO_NUM_NC, state is still tracked.
+void LED::write(uint8_t value)
+{
+    if (pin != (uint8_t)GPIO_NUM_NC)
+        digitalWrite(pin, value);
 }
 
 void LED::on()
 {
-    digitalWrite(pin, onState);
+    write(onState);
     currentState = onState;
     if (stateChangeCallback)
         stateChangeCallback(state());
@@ -44,7 +52,7 @@ void LED::on()
 
 void LED::off()
 {
-    digitalWrite(pin, offState);
+    write(offState);
     currentState = offState;
     if (stateChangeCallback)
         stateChangeCallback(state());
@@ -52,7 +60,7 @@ void LED::off()
 
 void LED::idle()
 {
-    digitalWrite(pin, idleState);
+    write(idleState);
     currentState = idleState;
     if (stateChangeCallback)
         stateChangeCallback(state());
@@ -81,7 +89,7 @@ void LED::flash(uint64_t ms)
     // Don't flash if we are already in a flash.
     if (!LEDtimer.active())
     {
-        digitalWrite(pin, activeState);
+        write(activeState);
         currentState = activeState;
         if (stateChangeCallback)
             stateChangeCallback(state());

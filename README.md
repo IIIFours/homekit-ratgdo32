@@ -79,6 +79,34 @@ Differences from ratgdo32 boards:
 - Update firmware with _Update from local file_ using `.pio/build/<environment>/firmware.bin`. _Update from GitHub_ and the browser-based flash tool install ratgdo32 (ESP32) firmware, which does not run on these boards. An OTA update with ESP32 firmware fails and the device keeps its current firmware.
 - ESP32-S2 only: USB serial is disabled, because with it enabled the firmware does not fit in the ESP32-S2's static RAM. There is no serial log, serial command line interface or Improv WiFi setup. To flash over USB, hold BOOT while pressing and releasing RESET, run `pio run -e qtpy_esp32s2 -t upload`, then press RESET. On first boot, connect to the _Garage Door ABCDEF_ WiFi network and browse to http://192.168.4.1 to select a WiFi network. Logs are available on the device web page and through syslog.
 
+## Seeed Studio XIAO ESP32C3
+
+The firmware can also be built for a [Seeed Studio XIAO ESP32C3](https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/) using the `xiao_esp32c3` PlatformIO environment. The XIAO has the same footprint as the QT Py, and each function uses the same physical pin position as on the QT Py, so it can replace a QT Py on the same carrier board. As with the QT Py, it must be connected to the door opener through circuitry equivalent to the ratgdo32 board.
+
+| Function | XIAO pin | QT Py pin at same position | GPIO |
+| --- | --- | --- | --- |
+| Door opener control TX | D6 | TX | 21 |
+| Door opener control RX | D7 | RX | 20 |
+| Obstruction sensor input | D0 | A0 | 2 |
+| Dry contact open (encoder A) | D1 | A1 | 3 |
+| Dry contact close (encoder B) | D2 | A2 | 4 |
+| Dry contact light | D3 | A3 | 5 |
+| Door status output | D4 | SDA | 6 |
+| Obstruction status output | D5 | SCL | 7 |
+| Beeper | D10 | MO | 10 |
+| Parking assist laser | D9 | MI | 9 |
+| Not used | D8 | SCK | 8 |
+
+To flash, connect the board by USB and run `pio run -e xiao_esp32c3 -t upload`. If the upload does not start, hold BOOT while pressing and releasing RESET, then try again. USB serial works as on ratgdo32 boards.
+
+Differences from the QT Py:
+
+- There is no VL53L4CX distance sensor. The XIAO has no STEMMA QT connector and every pin is used, so vehicle presence detection is not available and D8 (the QT Py XSHUT position) is unused.
+- There is no status LED. The XIAO has no user-controllable LED.
+- D9 (laser) is the BOOT button and an ESP32-C3 strapping pin. If it is low at reset the board enters the ROM bootloader instead of starting the firmware, so the laser circuit must not pull it low, for example with a strong pull-down. Do not press BOOT while the laser is on. D0 (obstruction input) and D8 are also strapping pins.
+- D6 (TX) is also UART0 TX, where the ESP32-C3 boot ROM prints a few lines at 115200 baud on every reset. These bytes go out on the door opener control line before the firmware starts.
+- Update firmware with _Update from local file_ using `.pio/build/xiao_esp32c3/firmware.bin`, as for the QT Py.
+
 ## HomeKit support
 
 When you first add the device to HomeKit a number of accessories are added:

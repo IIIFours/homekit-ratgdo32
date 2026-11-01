@@ -40,6 +40,8 @@ static bool improv_setup_done = false;
 
 void blink_led(int d, int times)
 {
+    if ((int)LED_BUILTIN == (int)GPIO_NUM_NC)
+        return;
     for (int j = 0; j < times; j++)
     {
         digitalWrite(LED_BUILTIN, HIGH);
